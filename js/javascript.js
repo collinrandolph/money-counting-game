@@ -1,5 +1,6 @@
 window.onload = () => {
-    document.getElementById('answer-submit').onclick = ans;
+    document.getElementById('answer-submit').onTouchStart = ans;
+    
     go();
 }
 
