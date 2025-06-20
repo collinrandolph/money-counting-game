@@ -1,9 +1,3 @@
-window.onload = () => {
-    document.getElementById('answer-submit').onTouchStart = ans;
-    
-    go();
-}
-
 let problemSolution;
 let problemString;
 
@@ -11,28 +5,28 @@ const PROPERTIES = {
 
     name: ["Bob", "Sue", "Johnny", "Chris", "Amber", "Kristen", "Paul", "Makenzie", "Albert", "Francisco", "Juan", "Chan", "Lee"],
     fruit: ["an apple", "a banana", "a bunch of grapes", "a pineapple", "a mango", "a bucket of strawberries"],
-    affirmation: [
-        "Good Job!",
-        "Nice Work!",
-        "Well Done!",
-        "Amazing!",
-        "Look at you go!",
-        "Incredible!"
-    ]
+    affirmation: ["Good Job!", "Nice Work!", "Well Done!", "Amazing!", "Look at you go!", "Incredible!"]
+
 }
 
 //Begin program
 let go = () => {
+
+    document.getElementById('answer-submit').ontouchstart = ans;
     return addition_generateProblems();
+
 }
 
 // Return a random integer in the range of the passed values.
 let getRandomInteger = (min, max) => {
+
     return Math.floor(Math.random() * (max - min + 1)) + min;
+
 }
 
 //Select a property from an array and omits duplicated properties
-let getProperty = (propList, excludedProp) => {
+let getRandomProperty = (propList, excludedProp) => {
+
     let propertyList = propList;
     let selectedProperty = excludedProp;
 
@@ -45,7 +39,8 @@ let getProperty = (propList, excludedProp) => {
 };
 
 // Place decimal point and determine if dollar sign or cent sign should be used.
-let getDollarAmount = (val) => {
+let convertToCurrency = (val) => {
+
     let moneyValue;
     let int = `${val}`;
     if (val >= 100) {
@@ -54,124 +49,174 @@ let getDollarAmount = (val) => {
         moneyValue = int + "¢"
     }
     return moneyValue;
+
 }
-
-// Return a randomized assortment of coins based on a passed value.
-// let makeChange = (val) => {
-
-//     let coinObject = {};
-
-//     coinObject.dollars = getRandomInteger(0, Math.floor(val / 100) - 1);
-//     coinObject.quarters = getRandomInteger(0, Math.floor((val - 100 * coinObject.dollars) / 25));
-//     coinObject.dimes = getRandomInteger(0, Math.floor((val - 100 * coinObject.dollars - 25 * coinObject.quarters) / 10));
-//     coinObject.nickels = (val - 100 * coinObject.dollars - 25 * coinObject.quarters - 10 * coinObject.dimes) / 5;
-
-//     return (coinObject);
-
-// }
 
 // Return a weighted randomized assortment of coins based on a passed value.
 let makeChange = (val) => {
-    let coinObject = {};
 
-    coinObject.dollars =  getRandomInteger(Math.floor(val / 300), Math.floor(val / 100));
-    coinObject.quarters = getRandomInteger(Math.floor((val - 100 * coinObject.dollars) / 50), Math.floor((val - 100 * coinObject.dollars) / 25));
-    coinObject.dimes = getRandomInteger(Math.floor((val - 100 * coinObject.dollars - 25 * coinObject.quarters) / 30), Math.floor((val - 100 * coinObject.dollars - 25 * coinObject.quarters) / 10));
-    coinObject.nickels = (val - 100 * coinObject.dollars - 25 * coinObject.quarters - 10 * coinObject.dimes) / 5;
+    let walletArray = [];
 
-    return (coinObject);
+    if (getCurrentWalletValue(walletArray) < val) {
+        const dollarObject = addCoinsToWallet(walletArray, val, "dollar", 100, 3, false);
+        if (dollarObject) {
+            walletArray.push(dollarObject);
+        }
+    }
+    if (getCurrentWalletValue(walletArray) < val) {
+        const quarterObject = addCoinsToWallet(walletArray, val, "quarter", 25, 2, false);
+        if (quarterObject) {
+            walletArray.push(quarterObject);
+        }
+    }
+    if (getCurrentWalletValue(walletArray) < val) {
+        const dimeObject = addCoinsToWallet(walletArray, val, "dime", 10, 3, false);
+        if (dimeObject) {
+            walletArray.push(dimeObject);
+        }
+    }
+    if (getCurrentWalletValue(walletArray) < val) {
+        const nickelObject = addCoinsToWallet(walletArray, val, "nickel", 5, 5, true);
+        if (nickelObject) {
+            walletArray.push(nickelObject);
+        }
+    }
+
+    return walletArray;
+
+}
+
+let getCurrentWalletValue = (walletArray) => {
+
+    let currentWalletValue = 0;
+
+    if (walletArray.length > 0) {
+        walletArray.forEach((el) => {
+            currentWalletValue += el.value * el.quantity;
+
+        });
+    } return currentWalletValue;
+
+}
+
+
+let addCoinsToWallet = (walletArray, totalVal, coinName, coinVal, weight, smallestDenomination) => {
+
+    let currentWalletValue = getCurrentWalletValue(walletArray);
+    let coinQuantity;
+
+    if (currentWalletValue < totalVal) {
+        if (smallestDenomination) {
+            coinQuantity = ((totalVal - currentWalletValue) / coinVal); //Distribute coins amongst the full remainder
+        } else {
+            coinQuantity = getRandomInteger(Math.floor((totalVal - currentWalletValue) / (coinVal * weight)), Math.floor((totalVal - currentWalletValue) / coinVal));
+        }
+        if (coinQuantity > 0) {
+            return { name: coinName, value: coinVal, quantity: coinQuantity };
+        }
+
+    } return false;
 
 }
 
 // Convert object of coin quantities into a descriptive string using plain english.
-let generateCoinString = (coinObject) => {
+let generateCoinString = (walletArray) => {
 
-    let coinString = "";
+    let coinString = ''
 
-    //Determine the appropriate separator string by evaluating if coins denominations before and after are at zero quantity
-    let makeSeparator = (denomination) => {
-
-        if ((denomination == "quarters" && coinObject.dimes == 0 && coinObject.nickels == 0 && coinString.length > 0) || (denomination == "dimes" && coinObject.nickels == 0 && coinString.length > 0) || (denomination == "nickels" && coinString.length > 0)) {
-            return ", and "
-        } else if (coinString.length > 0) {
-            return ", "
+    let pluralCheck = (coinName, coinQuantity) => {
+        if (coinQuantity == 1) {
+            return coinName;
         } else {
-            return "";
+            return `${coinName}s`
         }
     }
 
-    //Assemble final coin string
-    if (coinObject.dollars > 0) {
-        coinString += coinObject.dollars + " dollars";
-    }
-    if (coinObject.quarters > 0) {
-        coinString += makeSeparator("quarters") + coinObject.quarters + " quarters";
-    }
-    if (coinObject.dimes > 0) {
-        coinString += makeSeparator("dimes") + coinObject.dimes + " dimes";
-    }
-    if (coinObject.nickels > 0) {
-        coinString += makeSeparator("nickels") + coinObject.nickels + " nickels"
+    for (i = 0; i < walletArray.length; i++) {
+        if (i > 0) {
+            if (i < walletArray.length - 1) {
+                coinString += ", ";
+            } else {
+                if (walletArray.length > 2) {
+                    coinString += ",";
+                }
+                coinString += " and ";
+            }
+        }
+
+        coinString += `${walletArray[i].quantity} ${pluralCheck(walletArray[i].name, walletArray[i].quantity)}`
     }
 
     return coinString;
 
 }
 
-let renderCoins = (coinObject, name) => {
+let positiveNegativeSwitch = () => {
+
+    let coinflip = getRandomInteger(1, 2);
+
+    if (coinflip == 1) {
+        return "-"
+    } else {
+        return ""
+    }
+
+}
+
+let renderCoins = (walletArray, name) => {
+
     let walletGroupString;
-    console.log(coinObject);
+    console.log(walletArray);
     let renderCoinString = "";
 
-    for (let i = 0; i < coinObject.dollars; i++) {
-        renderCoinString += `<div id="${name}-dollar-${i + 1}" data-value="100" class="money bill dollar">$1</div>`
-    }
-    for (let i = 0; i < coinObject.quarters; i++) {
-        renderCoinString += `<div id="${name}-quarter-${i + 1}" data-value="25" class="money coin quarter">25</div>`
-    }
-    for (let i = 0; i < coinObject.dimes; i++) {
-        renderCoinString += `<div id="${name}-dime-${i + 1}" data-value="10" class="money coin dime">10</div>`
-    }
-    for (let i = 0; i < coinObject.nickels; i++) {
-        renderCoinString += `<div id="${name}-nickel-${i + 1}" data-value="10" class="money coin nickel">5</div>`
-    }
+    walletArray.forEach((el) => {
+        for (let i = 0; i < el.quantity; i++) {
+            renderCoinString += `<div id="${name}-${el.name}-${i + 1}" data-value="${el.value}" class="money ${el.name}" style="transform: translate(${positiveNegativeSwitch()}${getRandomInteger(40, 70)}px,${positiveNegativeSwitch()}${getRandomInteger(40, 70)}px) rotate(${getRandomInteger(30, 120)}deg) scale(${getRandomInteger(8, 10) / 10})">${convertToCurrency(el.value)}</div>`
+        }
+    });
 
     walletGroupString = `<div id="${name}-wallet" class="wallet"><div class="wallet-title">${name}</div>${renderCoinString}</div>`
 
     return (walletGroupString);
-    
+
 }
 
 let renderWallets = (string) => {
+
     document.getElementById("wallet-container").innerHTML = string;
+
 }
 
-let animateCoins = ()=>{
+let animateCoins = () => {
+
     let counter = 0;
     const coins = document.querySelectorAll("div.money");
-    coins.forEach(function(el) {
-        console.log(el + "+" + el.item);
+    coins.forEach(function (el) {
         setTimeout(() => {
             el.classList.add("visible");
         }, counter * 50)
         counter++;
-        
+
     });
-    
+
 }
 
 let updateProblem = (string) => {
+
     document.getElementById("problem-container").innerHTML = string;
     animateCoins();
+
 }
 
 let addition_generateProblems = () => {
+
     let problemSelect = getRandomInteger(1, 2);
     if (problemSelect == 1) {
         return addition_buyingFruit();
     } else if (problemSelect == 2) {
         return addition_sharingFriends();
     }
+
 }
 
 let addition_buyingFruit = () => {
@@ -179,59 +224,63 @@ let addition_buyingFruit = () => {
     let problemSum = getRandomInteger(1, 100) * 5;
     let problemFactorOne = getRandomInteger(1, problemSum / 5) * 5;
     let problemFactorTwo = problemSum - problemFactorOne;
-    let nameOne = getProperty(PROPERTIES.name);
-    let fruitName = getProperty(PROPERTIES.fruit);
-
-    let coinObjectOne = makeChange(problemFactorOne);
-
+    let nameOne = getRandomProperty(PROPERTIES.name);
+    let fruitName = getRandomProperty(PROPERTIES.fruit);
     problemSolution = problemFactorTwo;
 
-    problemString = `${nameOne} wants to buy ${fruitName} that costs ${getDollarAmount(problemSum)}. ${nameOne} has ${generateCoinString(coinObjectOne)}. How much more money does ${nameOne} need to buy ${fruitName}?`;
+    let walletArrayOne = makeChange(problemFactorOne);
 
-    const walletString = renderCoins(coinObjectOne, nameOne);
+    problemString = `${nameOne} wants to buy ${fruitName} that costs ${convertToCurrency(problemSum)}. ${nameOne} has ${generateCoinString(walletArrayOne)}. How much more money does ${nameOne} need to buy ${fruitName}?`;
+
+    const walletString = renderCoins(walletArrayOne, nameOne);
     renderWallets(walletString);
 
-
     updateProblem(problemString);
+    console.log(problemFactorOne + "+" + problemFactorTwo + "=" + problemSum)
 
 }
 
 let addition_sharingFriends = () => {
 
+
     let problemFactorOne = getRandomInteger(1, 40) * 5;
     let problemFactorTwo = getRandomInteger(1, 40) * 5;
-    let problemFactorSum = problemFactorOne + problemFactorTwo;
-    let nameOne = getProperty(PROPERTIES.name);
-    let nameTwo = getProperty(PROPERTIES.name, nameOne);
+    let problemSum = problemFactorOne + problemFactorTwo;
+    let nameOne = getRandomProperty(PROPERTIES.name);
+    let nameTwo = getRandomProperty(PROPERTIES.name, nameOne);
+    problemSolution = problemSum;
 
-    let coinObjectOne = makeChange(problemFactorOne);
-    let coinObjectTwo = makeChange(problemFactorTwo);
+    let walletArrayOne = makeChange(problemFactorOne);
+    let walletArrayTwo = makeChange(problemFactorTwo);
 
-    problemSolution = problemFactorSum;
+    problemString = `${nameOne} has ${generateCoinString(walletArrayOne)}, and ${nameTwo} has ${generateCoinString(walletArrayTwo)}. How much money do they have together?`;
 
-    problemString = `${nameOne} has ${generateCoinString(coinObjectOne)}, and ${nameTwo} has ${generateCoinString(coinObjectTwo)}. How much money do they have together?`;
-
-    let walletString = renderCoins(coinObjectOne, nameOne);
-    walletString += renderCoins(coinObjectTwo, nameTwo);
+    let walletString = renderCoins(walletArrayOne, nameOne);
+    walletString += renderCoins(walletArrayTwo, nameTwo);
     renderWallets(walletString);
 
-
     updateProblem(problemString);
+    console.log(problemFactorOne + "+" + problemFactorTwo + "=" + problemSum)
 
 }
 
 //Return user answer and compare it to the solution of the current problem.
-
-
-
 let ans = () => {
+
     let val = document.getElementById('answer-field').value;
     if (val == problemSolution) {
-        console.log(getProperty(PROPERTIES.affirmation) + " That's correct! The answer is " + getDollarAmount(problemSolution));
+        console.log(getRandomProperty(PROPERTIES.affirmation) + " That's correct! The answer is " + convertToCurrency(problemSolution));
         document.getElementById('answer-field').value = null;
     } else {
         console.log("Try Again!");
         return problemString;
     }
     return go();
+
+}
+
+window.onload = () => {
+
+    go();
+
 }
