@@ -69,6 +69,7 @@ let getDollarAmount = (val) => {
 
 // }
 
+// Return a weighted randomized assortment of coins based on a passed value.
 let makeChange = (val) => {
     let coinObject = {};
 
@@ -134,17 +135,33 @@ let renderCoins = (coinObject, name) => {
         renderCoinString += `<div id="${name}-nickel-${i + 1}" data-value="10" class="money coin nickel">5</div>`
     }
 
-    walletGroupString = `<div id="${name}-wallet" class="wallet">${name}${renderCoinString}</div>`
+    walletGroupString = `<div id="${name}-wallet" class="wallet"><div class="wallet-title">${name}</div>${renderCoinString}</div>`
 
     return (walletGroupString);
+    
 }
 
 let renderWallets = (string) => {
     document.getElementById("wallet-container").innerHTML = string;
 }
 
+let animateCoins = ()=>{
+    let counter = 0;
+    const coins = document.querySelectorAll("div.money");
+    coins.forEach(function(el) {
+        console.log(el + "+" + el.item);
+        setTimeout(() => {
+            el.classList.add("visible");
+        }, counter * 50)
+        counter++;
+        
+    });
+    
+}
+
 let updateProblem = (string) => {
     document.getElementById("problem-container").innerHTML = string;
+    animateCoins();
 }
 
 let addition_generateProblems = () => {

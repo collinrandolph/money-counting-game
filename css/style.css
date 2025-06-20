@@ -1,3 +1,7 @@
+*{
+    font-family: sans-serif;
+}
+
 .penny{
     width: 55px;
     height: 55px;
@@ -22,6 +26,7 @@
     width: 200px;
     height: 100px;
     background-color: rgb(66, 139, 66);
+    transform: translateY(40px) rotate(20deg) scale(.8);
 }
 .coin {
     border-radius: 50%;
@@ -29,6 +34,8 @@
     text-shadow:rgba(0, 0, 0, 0.253) 1px 3px;
     border: 2px solid rgb(73, 73, 73);
     box-shadow: rgba(0, 0, 0, 0.253) 1px 3px 10px ;
+    transform: translateY(40px) rotate(120deg) scale(.8);
+
 }
 .coin, .bill {
 
@@ -38,18 +45,63 @@
     font-size: 20px;
     font-weight: bolder;
 }
+
+.money{
+    opacity: 0;
+    transition: all 1s;
+    user-select: none;
+    /* cursor: pointer; */
+    
+}
+
+.money.visible{
+    opacity: 1;
+    transform: translateY(0px) rotate(0deg);
+}
+
+#problem-container{
+    font-size: 24px;
+    max-width: 700px;
+    margin: 60px auto;
+}
+#response-container {
+    font-size: 24px;
+    margin: 60px auto;
+    display: flex;
+    justify-content: center;
+    gap: 14px;
+}
 #wallet-container{
     display: flex;
     flex-direction: column;
-    align-items: center;
+    align-items: stretch;
     gap: 20px;
+    max-width: 800px;
+    margin: auto;
 }
 .wallet{
     display: flex;
     flex-wrap: wrap;
     align-items: center;
+    justify-content: space-around;
     background: rgb(238, 238, 211);
     border-radius: 10px;
     gap: 10px;
-    padding: 30px;
+    padding: 50px;
+    overflow:hidden;
+}
+
+.wallet-title{
+    flex: 1 1 100%;
+    text-align: center;
+    max-width: 760px;
+    margin:auto;
+    font-size: 24px;
+    margin-bottom: 20px;
+}
+
+@keyframes coin-entrance{
+    0% {transform: translateY(40px);}
+    75%{transform: translateY(-10px);}
+    100%{transform: translateY(0px);}
 }
